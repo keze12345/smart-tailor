@@ -17,6 +17,7 @@ class _UploadScreenState extends State<UploadScreen> {
   String _selectedCategory = 'Ankara';
   bool _isPublic = true;
   bool _isLoading = false;
+  String _error = '';
 
   final List<String> _categories = [
     'Ankara', 'Kaftan', 'Formal', 'Casual', 'Wedding',
@@ -24,11 +25,14 @@ class _UploadScreenState extends State<UploadScreen> {
   ];
 
   Future<void> _upload() async {
-    if (_titleCtrl.text.trim().isEmpty) return;
-    setState(() => _isLoading = true);
+    if (_titleCtrl.text.trim().isEmpty) {
+      setState(() => _error = 'Please enter a style title');
+      return;
+    }
+    setState(() { _isLoading = true; _error = ''; });
     final appState = Provider.of<AppState>(context, listen: false);
     try {
-      await http.post(
+      final res = await http.post(
         Uri.parse('https://smart-tailor-backend-bzpu.onrender.com/api/posts/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -37,13 +41,22 @@ class _UploadScreenState extends State<UploadScreen> {
           'description': _descCtrl.text.trim(),
           'category': _selectedCategory,
           'is_public': _isPublic,
-          'link_tailor': appState.isTailor,
+          'link_tailor': true,
           'tailor_id': appState.userId,
         }),
       );
-      if (mounted) Navigator.pop(context);
+      if (res.statusCode == 201) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Style uploaded successfully!'),
+              backgroundColor: Color(0xFF1B5E20)));
+          Navigator.pop(context, true);
+        }
+      } else {
+        setState(() => _error = 'Upload failed. Try again.');
+      }
     } catch (e) {
-      debugPrint('Upload error: ' + e.toString());
+      setState(() => _error = 'Connection error. Check your internet.');
     }
     setState(() => _isLoading = false);
   }
@@ -91,7 +104,7 @@ class _UploadScreenState extends State<UploadScreen> {
                   TextField(
                     controller: _titleCtrl,
                     decoration: const InputDecoration(
-                      labelText: 'Style Title',
+                      labelText: 'Style Title *',
                       prefixIcon: Icon(Icons.title, color: Color(0xFF1B5E20))),
                   ),
                   const SizedBox(height: 14),
@@ -153,6 +166,10 @@ class _UploadScreenState extends State<UploadScreen> {
                 ],
               ),
             ),
+            if (_error.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(_error, style: const TextStyle(color: Colors.red, fontSize: 13)),
+            ],
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,

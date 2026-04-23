@@ -50,9 +50,10 @@ class _TailorDashboardScreenState extends State<TailorDashboardScreen>
   }
 
   Future<void> _fetchCustomers() async {
+    final tailorId = Provider.of<AppState>(context, listen: false).userId;
     setState(() => _loadingCustomers = true);
     try {
-      final res = await http.get(Uri.parse('$_base/api/tailor-customers/'));
+      final res = await http.get(Uri.parse('$_base/api/tailor-customers/$tailorId'));
       setState(() {
         _customers = jsonDecode(res.body);
         _loadingCustomers = false;
@@ -110,14 +111,15 @@ class _TailorDashboardScreenState extends State<TailorDashboardScreen>
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
+                  if (nameCtrl.text.trim().isEmpty) return;
                   await http.post(
                     Uri.parse('$_base/api/tailor-customers/'),
                     headers: {'Content-Type': 'application/json'},
                     body: jsonEncode({
                       'tailor_id': tailorId,
-                      'name': nameCtrl.text,
-                      'phone': phoneCtrl.text,
-                      'email': emailCtrl.text,
+                      'name': nameCtrl.text.trim(),
+                      'phone': phoneCtrl.text.trim(),
+                      'email': emailCtrl.text.trim(),
                     }),
                   );
                   Navigator.pop(ctx);
@@ -246,7 +248,7 @@ class _TailorDashboardScreenState extends State<TailorDashboardScreen>
         children: [
           Icon(icon, size: 60, color: const Color(0xFFE5E5EA)),
           const SizedBox(height: 16),
-          Text(message,
+          Text(message, textAlign: TextAlign.center,
             style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 15)),
         ],
       ),
@@ -326,7 +328,6 @@ class _TailorDashboardScreenState extends State<TailorDashboardScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  // Pending orders
                   _loadingOrders
                     ? const Center(child: CircularProgressIndicator(color: Color(0xFF1B5E20)))
                     : _pending.isEmpty
@@ -339,7 +340,6 @@ class _TailorDashboardScreenState extends State<TailorDashboardScreen>
                             itemBuilder: (ctx, i) => _buildOrderCard(_pending[i], true),
                           ),
                         ),
-                  // History
                   _loadingOrders
                     ? const Center(child: CircularProgressIndicator(color: Color(0xFF1B5E20)))
                     : _history.isEmpty
@@ -352,7 +352,6 @@ class _TailorDashboardScreenState extends State<TailorDashboardScreen>
                             itemBuilder: (ctx, i) => _buildOrderCard(_history[i], false),
                           ),
                         ),
-                  // Customers
                   _loadingCustomers
                     ? const Center(child: CircularProgressIndicator(color: Color(0xFF1B5E20)))
                     : _customers.isEmpty

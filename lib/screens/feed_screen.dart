@@ -59,7 +59,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Hello, ',
+                      Text('Hello, ${appState.currentUser?['name']?.split(' ')[0] ?? ''}',
                         style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 14)),
                       const Text('Discover Styles',
                         style: TextStyle(color: Color(0xFF1C1C1E),
@@ -68,18 +68,22 @@ class _FeedScreenState extends State<FeedScreen> {
                     ],
                   ),
                   const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const UploadScreen())),
-                    child: Container(
-                      width: 40, height: 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1B5E20),
-                        borderRadius: BorderRadius.circular(12),
+                  if (appState.isTailor)
+                    GestureDetector(
+                      onTap: () async {
+                        final uploaded = await Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const UploadScreen()));
+                        if (uploaded == true) _fetchPosts();
+                      },
+                      child: Container(
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B5E20),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.add, color: Colors.white, size: 22),
                       ),
-                      child: const Icon(Icons.add, color: Colors.white, size: 22),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -127,16 +131,11 @@ class _FeedScreenState extends State<FeedScreen> {
                         children: [
                           const Icon(Icons.photo_outlined, size: 60, color: Color(0xFFE5E5EA)),
                           const SizedBox(height: 16),
-                          const Text('No posts yet', style: TextStyle(color: Color(0xFF8E8E93), fontSize: 16)),
+                          const Text('No styles yet',
+                            style: TextStyle(color: Color(0xFF8E8E93), fontSize: 16)),
                           const SizedBox(height: 8),
-                          const Text('Be the first to upload a style!',
+                          const Text('Tailors will upload styles here',
                             style: TextStyle(color: Color(0xFFAAAAAA), fontSize: 13)),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () => Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => const UploadScreen())),
-                            child: const Text('Upload Style'),
-                          ),
                         ],
                       ),
                     )
