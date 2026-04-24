@@ -32,19 +32,22 @@ class _UploadScreenState extends State<UploadScreen> {
     setState(() { _isLoading = true; _error = ''; });
     final appState = Provider.of<AppState>(context, listen: false);
     try {
+      final body = jsonEncode({
+        'uploader_id': appState.userId,
+        'title': _titleCtrl.text.trim(),
+        'description': _descCtrl.text.trim(),
+        'category': _selectedCategory,
+        'is_public': _isPublic,
+        'link_tailor': true,
+        'tailor_id': appState.userId,
+      });
+      debugPrint('Uploading: $body');
       final res = await http.post(
         Uri.parse('https://smart-tailor-backend-mi4z.onrender.com/api/posts/'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'uploader_id': appState.userId,
-          'title': _titleCtrl.text.trim(),
-          'description': _descCtrl.text.trim(),
-          'category': _selectedCategory,
-          'is_public': _isPublic,
-          'link_tailor': true,
-          'tailor_id': appState.userId,
-        }),
+        body: body,
       );
+      debugPrint('Response: ${res.statusCode} ${res.body}');
       if (res.statusCode == 201) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -53,10 +56,11 @@ class _UploadScreenState extends State<UploadScreen> {
           Navigator.pop(context, true);
         }
       } else {
-        setState(() => _error = 'Upload failed. Try again.');
+        setState(() => _error = 'Upload failed (${res.statusCode}). Try again.');
       }
     } catch (e) {
-      setState(() => _error = 'Connection error. Check your internet.');
+      debugPrint('Upload error: $e');
+      setState(() => _error = 'Connection error: $e');
     }
     setState(() => _isLoading = false);
   }
@@ -85,10 +89,8 @@ class _UploadScreenState extends State<UploadScreen> {
                   Icon(Icons.add_photo_alternate_outlined,
                     size: 48, color: const Color(0xFF1B5E20).withOpacity(0.4)),
                   const SizedBox(height: 8),
-                  const Text('Tap to add photo',
+                  const Text('Photo upload coming soon',
                     style: TextStyle(color: Color(0xFF8E8E93), fontSize: 14)),
-                  const Text('(Image upload coming soon)',
-                    style: TextStyle(color: Color(0xFFAAAAAA), fontSize: 12)),
                 ],
               ),
             ),
@@ -168,7 +170,21 @@ class _UploadScreenState extends State<UploadScreen> {
             ),
             if (_error.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Text(_error, style: const TextStyle(color: Colors.red, fontSize: 13)),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEBEE),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_error,
+                      style: const TextStyle(color: Colors.red, fontSize: 13))),
+                  ],
+                ),
+              ),
             ],
             const SizedBox(height: 24),
             SizedBox(
