@@ -26,6 +26,22 @@ app.register_blueprint(orders_bp, url_prefix="/api/orders")
 
 with app.app_context():
     init_db()
+    # Auto-migrate new columns
+    with db.engine.connect() as conn:
+        migrations = [
+            "ALTER TABLE dress_posts ADD COLUMN price FLOAT DEFAULT 0",
+            "ALTER TABLE dress_posts ADD COLUMN estimated_days INTEGER DEFAULT 7",
+            "ALTER TABLE orders ADD COLUMN location VARCHAR(200) DEFAULT ''",
+            "ALTER TABLE orders ADD COLUMN color_preference VARCHAR(200) DEFAULT ''",
+            "ALTER TABLE orders ADD COLUMN style_preference VARCHAR(300) DEFAULT ''",
+            "ALTER TABLE orders ADD COLUMN progress_note VARCHAR(500) DEFAULT ''",
+        ]
+        for sql in migrations:
+            try:
+                conn.execute(db.text(sql))
+                conn.commit()
+            except Exception:
+                pass  # Column already exists, skip
 
 @app.route("/")
 def home():
