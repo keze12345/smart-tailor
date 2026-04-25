@@ -53,6 +53,18 @@ def create_post():
         db.session.commit()
     return jsonify(post.to_dict()), 201
 
+@posts_bp.route("/<int:id>", methods=["PATCH"])
+def update_post(id):
+    post = DressPost.query.get_or_404(id)
+    data = request.get_json()
+    post.title = data.get('title', post.title)
+    post.description = data.get('description', post.description)
+    post.category = data.get('category', post.category)
+    post.price = data.get('price', post.price)
+    post.estimated_days = data.get('estimated_days', post.estimated_days)
+    db.session.commit()
+    return jsonify(post.to_dict())
+
 @posts_bp.route("/<int:id>", methods=["DELETE"])
 def delete_post(id):
     post = DressPost.query.get_or_404(id)

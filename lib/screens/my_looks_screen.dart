@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../services/ai_service.dart';
+import '../widgets/tryon_result_viewer.dart';
 import 'dress_detail_screen.dart';
 
 const _base = 'https://smart-tailor-backend-mi4z.onrender.com';
@@ -305,11 +306,9 @@ class _MyLooksScreenState extends State<MyLooksScreen> {
                                             // Show image result if Fashn.ai
                                             if (result['imageUrl'] != null &&
                                                 result['imageUrl']!.isNotEmpty)
-                                              ClipRRect(
-                                                borderRadius: BorderRadius.circular(12),
-                                                child: Image.network(result['imageUrl']!,
-                                                  width: double.infinity,
-                                                  height: 280, fit: BoxFit.cover),
+                                              TryOnResultViewer(
+                                                imageUrl: result['imageUrl'],
+                                                title: post['title'] ?? 'Your Look',
                                               ),
                                             // Show text description if Gemini
                                             if (result['description'] != null)

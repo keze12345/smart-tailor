@@ -11,13 +11,51 @@ class AiService {
     required String dressImageUrl,
   }) async {
     if (_useFashn) {
-      final url = await _tryOnWithFashn(
+      final tryOnUrl = await _tryOnWithFashn(
         personPhoto: personPhoto,
         dressImageUrl: dressImageUrl,
       );
-      return {'imageUrl': url};
+      // Remove background from result
+      final cleanUrl = await removeBg(tryOnUrl);
+      return {'imageUrl': cleanUrl.isNotEmpty ? cleanUrl : tryOnUrl};
     } else {
       return {'description': 'AI try-on not configured.'};
+    }
+  }
+
+  static Future<String> removeBg(String imageUrl) async {
+    try {
+      final startRes = await http.post(
+        Uri.parse('https://api.fashn.ai/v1/run'),
+        headers: {
+          'Authorization': 'Bearer $_fashnApiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model_name': 'background-remove',
+          'inputs': {'image': imageUrl},
+        }),
+      );
+      final startData = jsonDecode(startRes.body);
+      print('BG_REMOVE_STATUS: ${startRes.statusCode}');
+      print('BG_REMOVE_BODY: ${startRes.body}');
+      if (startData['error'] != null) return imageUrl;
+      final predictionId = startData['id'];
+      for (int i = 0; i < 20; i++) {
+        await Future.delayed(const Duration(seconds: 2));
+        final pollRes = await http.get(
+          Uri.parse('https://api.fashn.ai/v1/status/$predictionId'),
+          headers: {'Authorization': 'Bearer $_fashnApiKey'},
+        );
+        final pollData = jsonDecode(pollRes.body);
+        print('BG_POLL_$i: ${pollData['status']}');
+        if (pollData['status'] == 'completed') return pollData['output'][0];
+        if (pollData['status'] == 'failed') return imageUrl;
+      }
+      return imageUrl;
+    } catch (e) {
+      print('BG remove error: $e');
+      return imageUrl;
     }
   }
 
@@ -28,8 +66,6 @@ class AiService {
     try {
       final personBytes = await personPhoto.readAsBytes();
       final b64Person = base64Encode(personBytes);
-
-      // Step 1: Start job with correct API format
       final startRes = await http.post(
         Uri.parse('https://api.fashn.ai/v1/run'),
         headers: {
@@ -44,20 +80,13 @@ class AiService {
           },
         }),
       );
-
       print('FASHN_STATUS: ${startRes.statusCode}');
       print('FASHN_BODY: ${startRes.body}');
-
       final startData = jsonDecode(startRes.body);
-
       if (startData['error'] != null) {
         throw Exception('Fashn error: ${startData['error']}');
       }
-
       final predictionId = startData['id'];
-      print('FASHN_ID: $predictionId');
-
-      // Step 2: Poll for result
       for (int i = 0; i < 30; i++) {
         await Future.delayed(const Duration(seconds: 2));
         final pollRes = await http.get(
@@ -66,10 +95,7 @@ class AiService {
         );
         final pollData = jsonDecode(pollRes.body);
         print('FASHN_POLL_$i: ${pollData['status']}');
-
-        if (pollData['status'] == 'completed') {
-          return pollData['output'][0];
-        }
+        if (pollData['status'] == 'completed') return pollData['output'][0];
         if (pollData['status'] == 'failed') {
           throw Exception('Fashn job failed: ${pollData['error']}');
         }

@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../services/ai_service.dart';
+import '../widgets/tryon_result_viewer.dart';
 
 const _baseLooks = 'https://smart-tailor-backend-mi4z.onrender.com';
 
@@ -270,9 +271,12 @@ class _TailorLooksScreenState extends State<TailorLooksScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     // Image result (Fashn.ai)
                     if (_result!['imageUrl'] != null && _result!['imageUrl']!.isNotEmpty)
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                        child: Image.network(_result!['imageUrl']!, width: double.infinity, height: 350, fit: BoxFit.cover),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: TryOnResultViewer(
+                          imageUrl: _result!['imageUrl'],
+                          title: '${_selectedCustomer!['name']} in ${_selectedPost!['title']}',
+                        ),
                       ),
                     // Text result (Gemini)
                     if (_result!['description'] != null)
