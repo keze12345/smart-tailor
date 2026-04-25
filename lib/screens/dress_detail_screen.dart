@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../app_state.dart';
+import 'reviews_screen.dart';
 
 const _base = 'https://smart-tailor-backend-mi4z.onrender.com';
 
@@ -494,6 +495,23 @@ class _DressDetailScreenState extends State<DressDetailScreen> {
                                         Text(t['name'] ?? '',
                                           style: const TextStyle(fontWeight: FontWeight.w700,
                                             fontSize: 15, color: Color(0xFF1C1C1E))),
+                                        GestureDetector(
+                                          onTap: () => Navigator.push(context,
+                                            MaterialPageRoute(builder: (_) =>
+                                              ReviewsScreen(
+                                                tailorId: t['id'],
+                                                tailorName: t['name'] ?? ''))),
+                                          child: Row(children: [
+                                            const Icon(Icons.star,
+                                              size: 13, color: Colors.amber),
+                                            const SizedBox(width: 2),
+                                            Text('View reviews',
+                                              style: const TextStyle(
+                                                color: Color(0xFF1B5E20),
+                                                fontSize: 11,
+                                                decoration: TextDecoration.underline)),
+                                          ]),
+                                        ),
                                         if ((t['location'] ?? '').isNotEmpty)
                                           Row(
                                             children: [

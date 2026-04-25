@@ -8,6 +8,7 @@ import 'measurements_screen.dart';
 import 'profile_screen.dart';
 import 'tailor_dashboard_screen.dart';
 import 'tailor_looks_screen.dart';
+import 'customer_orders_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -35,6 +36,7 @@ class _MainShellState extends State<MainShell> {
           const FeedScreen(),
           const MyCatalogueScreen(),
           const MyLooksScreen(),
+          const CustomerOrdersScreen(),
           const MeasurementsScreen(),
           const ProfileScreen(),
         ];
@@ -71,6 +73,10 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.auto_awesome_outlined),
             activeIcon: Icon(Icons.auto_awesome),
             label: 'My Looks'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag_outlined),
+            activeIcon: Icon(Icons.shopping_bag),
+            label: 'Orders'),
           BottomNavigationBarItem(
             icon: Icon(Icons.straighten_outlined),
             activeIcon: Icon(Icons.straighten),
