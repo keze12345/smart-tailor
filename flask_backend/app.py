@@ -3,7 +3,7 @@ from flask_cors import CORS
 from models.database import db, init_db
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:LandRegistry2024!@db.jgulojsoofrqqrsmbtvq.supabase.co:5432/postgres"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres.jgulojsoofrqqrsmbtvq:LandRegistry2024!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 CORS(app)
 db.init_app(app)
