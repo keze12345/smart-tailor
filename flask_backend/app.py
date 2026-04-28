@@ -29,6 +29,18 @@ app.register_blueprint(reviews_bp, url_prefix="/api/reviews")
 with app.app_context():
     from models.review import Review
     init_db()
+    # Migrate new columns
+    with db.engine.connect() as conn:
+        migrations = [
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(200) DEFAULT ''",
+            "ALTER TABLE reviews ADD COLUMN IF NOT EXISTS id SERIAL" if False else "",
+        ]
+        for sql in [s for s in migrations if s]:
+            try:
+                conn.execute(db.text(sql))
+                conn.commit()
+            except Exception as e:
+                print(f'Migration skip: {e}')
 
 @app.route("/")
 def home():
