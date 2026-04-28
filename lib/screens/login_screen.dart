@@ -24,6 +24,8 @@ class _LoginScreenState extends State<LoginScreen>
   late AnimationController _bgController;
   late AnimationController _formController;
   late AnimationController _iconController;
+  late AnimationController _spinController;
+  late Animation<double> _spinAnimation;
   late Animation<double> _formSlide;
   late Animation<double> _formFade;
   late Animation<double> _iconFloat;
@@ -55,8 +57,15 @@ class _LoginScreenState extends State<LoginScreen>
     _formFade = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _formController, curve: Curves.easeOut));
     _iconFloat = Tween<double>(begin: 0, end: 1).animate(_iconController);
+    _spinController = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1200));
+    _spinAnimation = Tween<double>(begin: 0, end: 6 * 3.14159).animate(
+      CurvedAnimation(parent: _spinController, curve: Curves.easeOut));
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) _formController.forward();
+      if (mounted) {
+        _formController.forward();
+        _spinController.forward();
+      }
     });
   }
 
@@ -65,6 +74,7 @@ class _LoginScreenState extends State<LoginScreen>
     _bgController.dispose();
     _formController.dispose();
     _iconController.dispose();
+    _spinController.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
@@ -116,11 +126,11 @@ class _LoginScreenState extends State<LoginScreen>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: const [
-                Color(0xFF0A2E0A),
-                Color(0xFF1B5E20),
-                Color(0xFF2E7D32),
-                Color(0xFF0D3B0D),
+              colors: [
+                Color.lerp(const Color(0xFF6A0572), const Color(0xFF1B5E20), _bgController.value)!,
+                Color.lerp(const Color(0xFF1B5E20), const Color(0xFF0D47A1), _bgController.value)!,
+                Color.lerp(const Color(0xFFB71C1C), const Color(0xFF6A0572), _bgController.value)!,
+                Color.lerp(const Color(0xFF0D47A1), const Color(0xFFB71C1C), _bgController.value)!,
               ],
               stops: [
                 0.0,
@@ -156,24 +166,35 @@ class _LoginScreenState extends State<LoginScreen>
                       const Spacer(),
 
                       // Logo
-                      Container(
-                        width: 100, height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 24, offset: const Offset(0, 8))],
+                      AnimatedBuilder(
+                        animation: Listenable.merge([_iconController, _spinController]),
+                        builder: (context, child) => Transform.translate(
+                          offset: Offset(0, -20 * _iconFloat.value + 10),
+                          child: Transform.rotate(
+                            angle: _spinAnimation.value,
+                            child: child,
+                          ),
                         ),
-                        child: ClipOval(
+                        child: Container(
+                          width: 120, height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 16,
+                                offset: Offset(0, 6 + 8 * _iconFloat.value),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(10),
                           child: Image.asset(
                             'assets/icons/app_icon.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: Colors.white,
-                              child: const Center(
-                                child: Text('ST', style: TextStyle(
-                                  color: Color(0xFF1B5E20),
-                                  fontSize: 32, fontWeight: FontWeight.w900)))),
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const Text('ST',
+                              style: TextStyle(color: Color(0xFF1B5E20),
+                                fontSize: 28, fontWeight: FontWeight.w900)),
                           ),
                         ),
                       ),
@@ -199,21 +220,31 @@ class _LoginScreenState extends State<LoginScreen>
                           margin: const EdgeInsets.symmetric(horizontal: 24),
                           padding: const EdgeInsets.all(28),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.97),
-                            borderRadius: BorderRadius.circular(28),
-                            boxShadow: [BoxShadow(
-                              color: Colors.black.withOpacity(0.25),
-                              blurRadius: 40, offset: const Offset(0, 20))],
+                            color: Colors.white.withOpacity(0.95),
+                            borderRadius: BorderRadius.circular(32),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.6), width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 40, offset: const Offset(0, 20)),
+                              BoxShadow(
+                                color: Colors.purple.withOpacity(0.15),
+                                blurRadius: 60, offset: const Offset(-10, -10)),
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.15),
+                                blurRadius: 60, offset: const Offset(10, 10)),
+                            ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Welcome Back 👋',
-                                style: TextStyle(fontSize: 24,
+                              const Text('Welcome 👋',
+                                style: TextStyle(fontSize: 26,
                                   fontWeight: FontWeight.w800,
                                   color: Color(0xFF1C1C1E))),
                               const SizedBox(height: 4),
-                              const Text('Sign in to continue',
+                              const Text('Sign in to your account',
                                 style: TextStyle(color: Color(0xFF8E8E93),
                                   fontSize: 14)),
                               const SizedBox(height: 24),
